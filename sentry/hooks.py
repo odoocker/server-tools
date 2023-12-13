@@ -18,13 +18,17 @@ from .logutils import (
     get_extra_context,
 )
 
+try:
+    from .session_store import CustomSentryWsgiMiddleware
+except ImportError:
+    from sentry_sdk.integrations.wsgi import SentryWsgiMiddleware as CustomSentryWsgiMiddleware
+
 _logger = logging.getLogger(__name__)
 HAS_SENTRY_SDK = True
 try:
     import sentry_sdk
     from sentry_sdk.integrations.logging import ignore_logger
     from sentry_sdk.integrations.threading import ThreadingIntegration
-    from sentry_sdk.integrations.wsgi import SentryWsgiMiddleware
 except ImportError:  # pragma: no cover
     HAS_SENTRY_SDK = False  # pragma: no cover
     _logger.debug(
@@ -120,10 +124,10 @@ def initialize_sentry(config):
 
     # The server app is already registered so patch it here
     if server:
-        server.app = SentryWsgiMiddleware(server.app)
+        server.app = CustomSentryWsgiMiddleware(server.app)
 
     # Patch the wsgi server in case of further registration
-    wsgi_server.application = SentryWsgiMiddleware(wsgi_server.application)
+    wsgi_server.application = CustomSentryWsgiMiddleware(wsgi_server.application)
     if not config.get("sentry_ignore_startup_event", False):
         with sentry_sdk.push_scope() as scope:
             scope.set_extra("debug", False)

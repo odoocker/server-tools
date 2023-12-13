@@ -11,5 +11,5 @@ openpyxl
 openupgradelib
 pygount
 pysftp
-sentry_sdk<=1.9.0
+sentry_sdk
 unidecode
